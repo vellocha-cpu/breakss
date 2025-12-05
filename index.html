@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>BreaksEat — Web Pemesanan Makanan Kantin</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23bf2a52'/%3E%3Cpath d='M22 20l8 12M42 20l-8 12' stroke='%23fff' stroke-width='2' stroke-linecap='round' /%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        --primary: #bf2a52;
+        --secondary: #bfb74b;
+        --bg: #f7efe0;
+        --card: #fff;
+        --muted: #666;
+        --accent: #f2ae2e;
+        --radius: 12px;
+        --gap: 12px;
+      }
+
+      /* Reset & base */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        -webkit-font-smoothing: antialiased;
+        color: #222;
+        background: linear-gradient(180deg, var(--bg), #fff);
+      }
+      img {
+        max-width: 100%;
+        display: block;
+      }
+      button,
+      input,
+      select {
+        font-family: inherit;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 14px;
+      }
+
+      /* Welcome page (full-screen) */
+      .welcome-page {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #fffaf2, #fff6eb);
+        z-index: 60;
+        padding: 20px;
+      }
+      .welcome-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--card);
+        border-radius: 18px;
+        padding: 28px;
+        text-align: center;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      }
+      .welcome-logo {
+        width: 86px;
+        height: 86px;
+        border-radius: 50%;
+        margin: 0 auto 12px;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px rgba(191, 42, 82, 0.15);
+      }
+      .welcome-title {
+        font-size: 22px;
+        font-weight: 800;
+        margin-bottom: 6px;
+      }
+      .welcome-sub {
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 18px;
+        line-height: 1.4;
+      }
+      .welcome-btn {
+        background: var(--primary);
+        color: #fff;
+        border: 0;
+        padding: 12px 18px;
+        border-radius: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+      }
+      .welcome-btn:active {
+        transform: translateY(1px);
+      }
+
+      /* Header */
+      header.app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 0;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 800;
+      }
+      .brand h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+      .brand .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      select.select,
+      input.search {
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        font-weight: 600;
+        background: #fff;
+      }
+      button.btn {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 0;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .btn.primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn.secondary {
+        background: var(--secondary);
+        color: #111;
+      }
+
+      /* Layout */
+      main.layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 16px;
+      }
+      @media (max-width: 900px) {
+        main.layout {
+          grid-template-columns: 1fr 320px;
+        }
+      }
+      @media (max-width: 640px) {
+        main.layout {
+          grid-template-columns: 1fr;
+          gap: 14px;
+          padding-bottom: 80px;
+        }
+      }
+
+      /* Card */
+      .card {
+        background: var(--card);
+        border-radius: var(--radius);
+        padding: 12px;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.05);
+      }
+      h2,
+      h3 {
+        margin-bottom: 8px;
+      }
+
+      /* Menu grid */
+      .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 10px 4px;
+      }
+      @media (max-width: 900px) {
+        .menu-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 480px) {
+        .menu-grid {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+      }
+
+      .menu-item {
+        display: flex;
+        flex-direction: column;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        transition: transform 0.14s;
+      }
+      .menu-item:hover {
+        transform: translateY(-6px);
+      }
+      .menu-item img {
+        height: 180px;
+        object-fit: cover;
+      }
+      @media (max-width: 480px) {
+        .menu-item img {
+          height: 160px;
+        }
+      }
+      .menu-body {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .menu-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .menu-title h3 {
+        font-size: 15px;
+        margin: 0;
+      }
+      .price {
+        font-weight: 700;
+        color: var(--primary);
+      }
+      .desc {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.3;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .qty {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .qty button {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        background: #fff;
+        font-size: 18px;
+        cursor: pointer;
+      }
+      .qty .val {
+        min-width: 28px;
+        text-align: center;
+        font-weight: 700;
+      }
+      .add {
+        flex: 1;
+        padding: 10px;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        border: 0;
+        cursor: pointer;
+        margin-left: 6px;
+      }
+
+      /* Cart / aside */
+      .cart {
+        position: sticky;
+        top: 18px;
+        align-self: start;
+      }
+      .cart .items {
+        max-height: 420px;
+        overflow: auto;
+        padding-right: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .cart-item {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .cart-item img {
+        width: 64px;
+        height: 52px;
+        object-fit: cover;
+        border-radius: 8px;
+      }
+      .cart-footer {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      /* Checkout buttons full width on small screens */
+      @media (max-width: 480px) {
+        .controls {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .cart {
+          position: static;
+        }
+        .cart .items {
+          max-height: 260px;
+        }
+        .btn {
+          width: 100%;
+        }
+        .header .controls {
+          width: 100%;
+        }
+      }
+
+      /* Modal */
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        z-index: 80;
+      }
+      .modal.show {
+        display: flex;
+      }
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+      }
+      .modal-card {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 760px;
+        border-radius: 12px;
+        overflow: auto;
+        max-height: 92vh;
+        padding: 16px;
+      }
+
+      /* receipt */
+      .receipt {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid var(--secondary);
+      }
+      .receipt-header {
+        text-align: center;
+      }
+      .success-check {
+        font-size: 48px;
+        color: #28a745;
+      }
+
+      /* small helpers */
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      footer {
+        margin-top: 18px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        padding: 20px 0;
+      }
+
+      /* tiny toast */
+      .toast {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        background: #111;
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 10px;
+        z-index: 200;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: all 0.28s;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Welcome -->
+    <div class="welcome-page" id="welcomePage" aria-hidden="false">
+      <div
+        class="welcome-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcomeTitle"
+      >
+        <div class="welcome-logo" aria-hidden="true">
+          <svg
+            width="40"
+            height="40"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#fff"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          >
+            <path d="M7 3c0 3 3 6 3 9s-3 6-3 9" />
+            <path d="M17 3c0 3-3 6-3 9s3 6 3 9" />
+          </svg>
+        </div>
+        <h2 id="welcomeTitle" class="welcome-title">
+          <span style="color: var(--secondary)">Breaks</span
+          ><span style="color: var(--primary)">Eat</span>
+        </h2>
+        <p class="welcome-sub">
+          Selamat datang! Pemesanan makanan kantin jadi cepat & mudah — dibuat
+          nyaman untuk layar HP.
+        </p>
+        <button id="startBtn" class="welcome-btn">Mulai Pesan</button>
+      </div>
+    </div>
+
+    <!-- App -->
+    <div class="container" id="mainApp" style="display: none">
+      <header class="app-header" role="banner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">BE</div>
+          <div>
+            <h1 style="font-size: 16px; margin-bottom: 2px">BreaksEat</h1>
+            <div class="small muted">Web Pemesanan Makanan Kantin</div>
+          </div>
+        </div>
+
+        <div class="controls" aria-hidden="false">
+          <select
+            id="kantinSelect"
+            class="select"
+            aria-label="Pilih kantin"
+          ></select>
+          <input
+            id="search"
+            class="search"
+            type="search"
+            placeholder="Cari menu..."
+            aria-label="Cari menu"
+          />
+          <button
+            id="openCartBtn"
+            class="btn primary"
+            aria-controls="cartCount"
+          >
+            Keranjang (<span id="cartCount">0</span>)
+          </button>
+        </div>
+      </header>
+
+      <main class="layout" role="main">
+        <!-- Menu Section -->
+        <section>
+          <div class="card">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                margin-bottom: 8px;
+              "
+            >
+              <div>
+                <h2 style="margin: 6px 0 0 0">Menu Populer</h2>
+                <div class="small muted">Klik + untuk menambahkan</div>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center">
+                <!-- optional quick filter/buttons could go here -->
+              </div>
+            </div>
+
+            <div id="menuGrid" class="menu-grid" aria-live="polite"></div>
+          </div>
+
+          <div class="card" style="margin-top: 12px">
+            <h3>Cara Pemesanan</h3>
+            <ol style="padding-left: 18px; margin-top: 6px">
+              <li>Pilih kantin → pilih menu → isi jam pengambilan</li>
+              <li>Checkout → pilih e-wallet → bayar</li>
+              <li>Tunjukkan bukti, ambil pesanan</li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- Cart Sidebar -->
+        <aside class="cart card" style="min-width: 0">
+          <h3 style="margin-bottom: 8px">Ringkasan Keranjang</h3>
+          <div class="items" id="cartItems" aria-live="polite"></div>
+
+          <div class="cart-footer">
+            <div style="display: flex; justify-content: space-between">
+              <div class="small muted">Subtotal</div>
+              <div id="subtotal">Rp0</div>
+            </div>
+            <div style="display: flex; justify-content: space-between">
+              <div class="small muted">Biaya Admin</div>
+              <div id="adminFee">Rp1.000</div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-weight: 800;
+                font-size: 16px;
+              "
+            >
+              <div>Total</div>
+              <div id="total">Rp0</div>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button id="checkoutBtn" class="btn primary" style="flex: 1">
+                Checkout
+              </button>
+              <button id="clearCart" class="btn secondary" style="flex: 1">
+                Bersihkan
+              </button>
+            </div>
+          </div>
+        </aside>
+      </main>
+
+      <footer>© BreaksEat — Demo Frontend • Theme colors checked</footer>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div
+      id="checkoutModal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="modal-backdrop"></div>
+      <div class="modal-card card" role="document">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+          "
+        >
+          <h3 style="margin: 0">Checkout</h3>
+          <button id="closeModal" class="btn secondary" aria-label="Tutup">
+            X
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: 10px">
+          <div>
+            <label class="small">Nama Lengkap</label
+            ><input id="buyerName" class="select" placeholder="Nama" />
+          </div>
+          <div>
+            <label class="small">Kelas</label
+            ><input id="buyerClass" class="select" placeholder="Kelas" />
+          </div>
+          <div>
+            <label class="small">Nomor HP / Email</label
+            ><input
+              id="buyerContact"
+              class="select"
+              placeholder="08xxxx / email@"
+            />
+          </div>
+          <div>
+            <label class="small">Pilih Jam Pengambilan</label>
+            <select id="timeSlot" class="select">
+              <option>09:30-09:35</option>
+              <option>09:35-09:45</option>
+              <option>11:45-12:00</option>
+              <option>12:00-12:50</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="small">Pilih Metode Pembayaran</label>
+            <div
+              style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px"
+            >
+              <label style="display: flex; align-items: center; gap: 6px"
+                ><input type="radio" name="wallet" value="OVO" checked />
+                OVO</label
+              >
+              <label style="display: flex; align-items: center; gap: 6px"
+                ><input type="radio" name="wallet" value="GoPay" /> GoPay</label
+              >
+              <label style="display: flex; align-items: center; gap: 6px"
+                ><input type="radio" name="wallet" value="Dana" /> Dana</label
+              >
+              <label style="display: flex; align-items: center; gap: 6px"
+                ><input type="radio" name="wallet" value="BreaksEatPay" />
+                BreaksEatPay</label
+              >
+              <label style="display: flex; align-items: center; gap: 6px"
+                ><input type="radio" name="wallet" value="ShopeePay" />
+                ShopeePay</label
+              >
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; align-items: center">
+            <div style="flex: 1">
+              <div class="small muted">Total yang harus dibayar</div>
+              <div id="checkoutTotal" style="font-weight: 800; font-size: 18px">
+                Rp0
+              </div>
+            </div>
+            <div><button id="payBtn" class="btn primary">Bayar</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div
+      id="receiptModal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="modal-backdrop"></div>
+      <div class="modal-card card" style="max-width: 520px">
+        <div class="receipt">
+          <div class="receipt-header">
+            <div class="success-check">✅</div>
+            <h2 style="margin: 10px 0 6px; color: var(--primary)">
+              Pembayaran Berhasil!
+            </h2>
+            <div class="small muted">Bukti Pembayaran</div>
+          </div>
+
+          <div style="margin-top: 12px">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>Nomor Pesanan</strong>
+              <div id="receiptOrderNumber">-</div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>Tanggal</strong>
+              <div id="receiptDate">-</div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>Nominal</strong>
+              <div id="receiptAmount">Rp0</div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>Metode</strong>
+              <div id="receiptMethod">-</div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>No. E-Wallet</strong>
+              <div id="receiptWalletNumber">-</div>
+            </div>
+
+            <hr
+              style="margin: 12px 0; border: none; border-top: 1px dashed #ccc"
+            />
+
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>Atas Nama</strong>
+              <div id="receiptName">-</div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>Kelas</strong>
+              <div id="receiptClass">-</div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>No. HP</strong>
+              <div id="receiptPhone">-</div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>Jam Pengambilan</strong>
+              <div id="receiptTimeSlot">-</div>
+            </div>
+
+            <hr
+              style="margin: 12px 0; border: none; border-top: 1px dashed #ccc"
+            />
+
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+              "
+            >
+              <strong>Nomor Antrian</strong>
+              <div
+                id="receiptQueue"
+                style="font-size: 20px; font-weight: 800; color: var(--primary)"
+              >
+                -
+              </div>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 14px">
+            <button id="closeReceiptBtn" class="btn primary">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Minimal toast -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      /* ---------- Data ---------- */
+      const kantins = [
+        "Kantin Merah",
+        "Kantin Kuning",
+        "Kantin Hijau",
+        "Kantin Biru",
+        "Kantin Bu Pony",
+        "Kantin Cita Rasa",
+        "Kantin Sumringah",
+      ];
+      const menus = {
+        "Kantin Merah": [
+          {
+            id: "m1",
+            name: "Cireng Keju",
+            price: 2000,
+            img: "img.jpeg",
+            desc: "cireng gurih isian keju",
+          },
+          {
+            id: "m2",
+            name: "Mie Jebew",
+            price: 6000,
+            img: "mie.jpg",
+            desc: "mie spesial pedas",
+          },
+          {
+            id: "m3",
+            name: "Cappucino Cincau",
+            price: 3000,
+            img: "capcin.jpg",
+            desc: "es segar",
+          },
+        ],
+        "Kantin Kuning": [
+          {
+            id: "k1",
+            name: "Corndog",
+            price: 2500,
+            img: "corn.jpg",
+            desc: "Corndog renyah",
+          },
+          {
+            id: "k2",
+            name: "Gorengan (isi 3)",
+            price: 2000,
+            img: "gor.jpg",
+            desc: "gorengan isi 3",
+          },
+          {
+            id: "k3",
+            name: "Nasi Ayam Geprek",
+            price: 8000,
+            img: "nas.jpg",
+            desc: "ayam geprek pedas",
+          },
+        ],
+        "Kantin Hijau": [
+          {
+            id: "h1",
+            name: "Mie Ayam",
+            price: 5000,
+            img: "ay.jpg",
+            desc: "mie ayam spesial",
+          },
+          {
+            id: "h2",
+            name: "Pangsit Goreng",
+            price: 1500,
+            img: "wo.jpg",
+            desc: "pangsit ayam renyah",
+          },
+          {
+            id: "h3",
+            name: "Nasi Oseng",
+            price: 6000,
+            img: "os.jpg",
+            desc: "nasi + oseng sayur",
+          },
+        ],
+        "Kantin Biru": [
+          {
+            id: "b1",
+            name: "Es Cup",
+            price: 4000,
+            img: "cap.jpg",
+            desc: "es segar",
+          },
+          {
+            id: "b2",
+            name: "Ayam Kremes",
+            price: 10000,
+            img: "kr.jpg",
+            desc: "ayam kriuk",
+          },
+          {
+            id: "b3",
+            name: "Seblak",
+            price: 6000,
+            img: "seb.jpg",
+            desc: "seblak level 1-5",
+          },
+        ],
+        "Kantin Bu Pony": [
+          {
+            id: "p1",
+            name: "Risol",
+            price: 2500,
+            img: "ris.jpg",
+            desc: "risol mayonaise",
+          },
+          {
+            id: "p2",
+            name: "Tempura Gongso",
+            price: 1500,
+            img: "tempu.jpg",
+            desc: "serba gongso",
+          },
+          {
+            id: "p3",
+            name: "Wonton Chili Oil",
+            price: 5000,
+            img: "basah.jpg",
+            desc: "wonton pedas",
+          },
+        ],
+        "Kantin Cita Rasa": [
+          {
+            id: "c1",
+            name: "Mie Toprak",
+            price: 8000,
+            img: "topra.jpg",
+            desc: "mie kuah kaldu",
+          },
+          {
+            id: "c2",
+            name: "Cireng Ayam",
+            price: 2000,
+            img: "cir.jpg",
+            desc: "cireng isian ayam",
+          },
+          {
+            id: "c3",
+            name: "Gorengan (isi 3)",
+            price: 2000,
+            img: "go.jpg",
+            desc: "paket renyah",
+          },
+        ],
+        "Kantin Sumringah": [
+          {
+            id: "s1",
+            name: "Sempol Ayam",
+            price: 1500,
+            img: "semp.jpg",
+            desc: "sempol nampol",
+          },
+          {
+            id: "s2",
+            name: "Bakso Kuah",
+            price: 6000,
+            img: "bak.jpg",
+            desc: "bakso kuah spesial",
+          },
+          {
+            id: "s3",
+            name: "Es Jeruk",
+            price: 3500,
+            img: "jer.jpg",
+            desc: "es minuman",
+          },
+        ],
+      };
+      const walletNumbers = {
+        OVO: "0895-1234-5678",
+        GoPay: "0812-3456-7890",
+        Dana: "0878-9012-3456",
+        ShopeePay: "0821-2345-6789",
+        BreaksEatPay: "9876-5432-1098",
+      };
+      const ADMIN_FEE = 1000;
+
+      /* ---------- State ---------- */
+      let selectedKantin = kantins[0];
+      let cart = [];
+
+      /* ---------- Elements ---------- */
+      const welcomePage = document.getElementById("welcomePage");
+      const startBtn = document.getElementById("startBtn");
+      const mainApp = document.getElementById("mainApp");
+      const kantinSelect = document.getElementById("kantinSelect");
+      const menuGrid = document.getElementById("menuGrid");
+      const cartItems = document.getElementById("cartItems");
+      const cartCount = document.getElementById("cartCount");
+      const subtotalEl = document.getElementById("subtotal");
+      const totalEl = document.getElementById("total");
+      const adminFeeEl = document.getElementById("adminFee");
+      const openCartBtn = document.getElementById("openCartBtn");
+      const checkoutBtn = document.getElementById("checkoutBtn");
+      const clearCartBtn = document.getElementById("clearCart");
+      const checkoutModal = document.getElementById("checkoutModal");
+      const closeModalBtn = document.getElementById("closeModal");
+      const payBtn = document.getElementById("payBtn");
+      const receiptModal = document.getElementById("receiptModal");
+      const closeReceiptBtn = document.getElementById("closeReceiptBtn");
+      const toastEl = document.getElementById("toast");
+      const searchInput = document.getElementById("search");
+
+      /* ---------- Init ---------- */
+      startBtn.addEventListener("click", () => {
+        welcomePage.style.display = "none";
+        mainApp.style.display = "block";
+        populateKantins();
+        renderMenu();
+        renderCart();
+      });
+
+      function populateKantins() {
+        kantins.forEach((k) => {
+          const opt = document.createElement("option");
+          opt.value = k;
+          opt.textContent = k;
+          kantinSelect.appendChild(opt);
+        });
+        kantinSelect.value = selectedKantin;
+      }
+
+      kantinSelect.addEventListener("change", (e) => {
+        selectedKantin = e.target.value;
+        renderMenu();
+      });
+
+      function money(v) {
+        return "Rp" + String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      }
+
+      function renderMenu(list) {
+        menuGrid.innerHTML = "";
+        const items = list || menus[selectedKantin] || [];
+        items.forEach((item) => {
+          const el = document.createElement("article");
+          el.className = "menu-item";
+          // use placeholder if image not found (developers can replace with real assets)
+          const imgSrc =
+            item.img || "https://via.placeholder.com/600x400?text=Menu";
+          el.innerHTML = `
+            <img src="${imgSrc}" alt="${escapeHtml(
+            item.name
+          )}" loading="lazy" />
+            <div class="menu-body">
+              <div class="menu-title"><h3>${escapeHtml(
+                item.name
+              )}</h3><div class="price">${money(item.price)}</div></div>
+              <div class="desc">${escapeHtml(item.desc)}</div>
+              <div class="actions">
+                <div class="qty" data-id="${item.id}">
+                  <button class="dec" aria-label="kurangi">−</button>
+                  <div class="val" data-qty-id="${item.id}">1</div>
+                  <button class="inc" aria-label="tambah">+</button>
+                </div>
+                <button class="add" data-id="${item.id}">+ Keranjang</button>
+              </div>
+            </div>
+          `;
+          menuGrid.appendChild(el);
+        });
+      }
+
+      // delegated events for menu actions
+      menuGrid.addEventListener("click", (e) => {
+        if (e.target.closest(".add")) {
+          const id = e.target.closest(".add").dataset.id;
+          const qtyEl = document.querySelector(`[data-qty-id="${id}"]`);
+          const qty = parseInt(qtyEl?.textContent || "1");
+          addToCart(id, qty);
+        }
+        if (
+          e.target.classList.contains("inc") ||
+          e.target.classList.contains("dec")
+        ) {
+          const parent = e.target.closest(".qty");
+          const id = parent.dataset.id;
+          const qtyEl = parent.querySelector(`[data-qty-id="${id}"]`);
+          let cur = parseInt(qtyEl.textContent || "1");
+          if (e.target.classList.contains("inc")) cur = cur + 1;
+          else cur = Math.max(1, cur - 1);
+          qtyEl.textContent = cur;
+        }
+      });
+
+      function findMenuItemById(id) {
+        return (
+          Object.values(menus)
+            .flat()
+            .find((i) => i.id === id) || null
+        );
+      }
+
+      function addToCart(id, qty = 1) {
+        const item = findMenuItemById(id);
+        if (!item) {
+          showToast("Item tidak ditemukan");
+          return;
+        }
+        const ex = cart.find((c) => c.id === id);
+        if (ex) ex.qty += qty;
+        else cart.push({ ...item, qty });
+        renderCart();
+        showToast(`"${item.name}" ditambahkan ke keranjang`);
+      }
+
+      function renderCart() {
+        cartItems.innerHTML = "";
+        let subtotal = 0;
+        cart.forEach((it) => {
+          subtotal += it.price * it.qty;
+          const div = document.createElement("div");
+          div.className = "cart-item";
+          const img = it.img
+            ? it.img
+            : "https://via.placeholder.com/160x110?text=Menu";
+          div.innerHTML = `
+            <img src="${img}" alt="${escapeHtml(it.name)}" />
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-weight:700">${escapeHtml(it.name)}</div>
+                <div class="small">${money(it.price)}</div>
+              </div>
+              <div class="small muted">x ${it.qty}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn small remove" data-remove="${
+                it.id
+              }" style="padding:6px 8px;border-radius:8px;background:#eee;border:0">Hapus</button>
+            </div>
+          `;
+          cartItems.appendChild(div);
+        });
+        cartCount.textContent = cart.reduce((s, i) => s + i.qty, 0);
+        subtotalEl.textContent = money(subtotal);
+        adminFeeEl.textContent = money(ADMIN_FEE);
+        totalEl.textContent = money(subtotal + (cart.length ? ADMIN_FEE : 0));
+      }
+
+      // cart remove
+      cartItems.addEventListener("click", (e) => {
+        if (e.target.matches("[data-remove]")) {
+          const id = e.target.dataset.remove;
+          cart = cart.filter((c) => c.id !== id);
+          renderCart();
+        }
+      });
+
+      // clear cart
+      clearCartBtn.addEventListener("click", () => {
+        cart = [];
+        renderCart();
+      });
+
+      // open cart scroll
+      openCartBtn.addEventListener("click", () => {
+        document.querySelector(".cart").scrollIntoView({ behavior: "smooth" });
+      });
+
+      // checkout flow
+      checkoutBtn.addEventListener("click", () => {
+        if (cart.length === 0) {
+          alert("Keranjang kosong");
+          return;
+        }
+        updateCheckoutTotal();
+        checkoutModal.classList.add("show");
+        checkoutModal.setAttribute("aria-hidden", "false");
+      });
+      closeModalBtn.addEventListener("click", () => {
+        checkoutModal.classList.remove("show");
+        checkoutModal.setAttribute("aria-hidden", "true");
+      });
+
+      function updateCheckoutTotal() {
+        const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+        document.getElementById("checkoutTotal").textContent = money(
+          subtotal + (cart.length ? ADMIN_FEE : 0)
+        );
+      }
+
+      // payment simulation
+      payBtn.addEventListener("click", () => {
+        const buyerName = document.getElementById("buyerName").value.trim();
+        const buyerClass = document.getElementById("buyerClass").value.trim();
+        const buyerContact = document
+          .getElementById("buyerContact")
+          .value.trim();
+        const timeSlot = document.getElementById("timeSlot").value;
+        if (!buyerName || !buyerContact) {
+          alert("Isi nama & kontak terlebih dahulu");
+          return;
+        }
+        const wallet =
+          document.querySelector("input[name=wallet]:checked")?.value || "OVO";
+        const orderNumber = generateOrderNumber();
+        const totalAmount =
+          cart.reduce((s, i) => s + i.price * i.qty, 0) + ADMIN_FEE;
+        const queueNumber = Math.floor(Math.random() * 999) + 1;
+
+        const orderData = {
+          orderNumber,
+          buyerName,
+          buyerClass,
+          buyerContact,
+          timeSlot,
+          wallet,
+          items: cart.slice(),
+          total: totalAmount,
+          queueNumber,
+          status: "paid",
+          timestamp: new Date().toISOString(),
+        };
+
+        // save to localStorage
+        const orders = JSON.parse(localStorage.getItem("brek_orders") || "[]");
+        orders.push(orderData);
+        localStorage.setItem("brek_orders", JSON.stringify(orders));
+
+        showReceipt(orderData);
+        cart = [];
+        renderCart();
+        checkoutModal.classList.remove("show");
+        checkoutModal.setAttribute("aria-hidden", "true");
+      });
+
+      function showReceipt(orderData) {
+        const now = new Date();
+        const formattedDate = now.toLocaleDateString("id-ID", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        document.getElementById("receiptOrderNumber").textContent =
+          orderData.orderNumber;
+        document.getElementById("receiptDate").textContent = formattedDate;
+        document.getElementById("receiptAmount").textContent = money(
+          orderData.total
+        );
+        document.getElementById("receiptMethod").textContent = orderData.wallet;
+        document.getElementById("receiptWalletNumber").textContent =
+          walletNumbers[orderData.wallet] || "-";
+        document.getElementById("receiptName").textContent =
+          orderData.buyerName;
+        document.getElementById("receiptClass").textContent =
+          orderData.buyerClass || "-";
+        document.getElementById("receiptPhone").textContent =
+          orderData.buyerContact;
+        document.getElementById("receiptTimeSlot").textContent =
+          orderData.timeSlot;
+        document.getElementById("receiptQueue").textContent = `#${String(
+          orderData.queueNumber
+        ).padStart(3, "0")}`;
+
+        receiptModal.classList.add("show");
+        receiptModal.setAttribute("aria-hidden", "false");
+      }
+
+      closeReceiptBtn.addEventListener("click", () => {
+        receiptModal.classList.remove("show");
+        receiptModal.setAttribute("aria-hidden", "true");
+      });
+
+      function generateOrderNumber() {
+        const t = new Date();
+        const y = t.getFullYear();
+        const m = String(t.getMonth() + 1).padStart(2, "0");
+        const d = String(t.getDate()).padStart(2, "0");
+        const dateKey = `${y}${m}${d}`;
+        const seqKey = `brek_seq_${dateKey}`;
+        let seq = parseInt(localStorage.getItem(seqKey) || "0") + 1;
+        localStorage.setItem(seqKey, seq);
+        return `BREK-${dateKey}-${String(seq).padStart(5, "0")}`;
+      }
+
+      // custom item (optional) - if button present
+      // search
+      searchInput.addEventListener("input", (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        if (!q) {
+          renderMenu();
+          return;
+        }
+        const list = (menus[selectedKantin] || []).filter(
+          (i) =>
+            i.name.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q)
+        );
+        renderMenu(list);
+      });
+
+      // small toast
+      function showToast(msg, time = 1800) {
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        setTimeout(() => toastEl.classList.remove("show"), time);
+      }
+
+      // escape helper
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[c])
+        );
+      }
+
+      // Ensure keyboard accessibility: close modals with Esc
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (checkoutModal.classList.contains("show")) {
+            checkoutModal.classList.remove("show");
+            checkoutModal.setAttribute("aria-hidden", "true");
+          }
+          if (receiptModal.classList.contains("show")) {
+            receiptModal.classList.remove("show");
+            receiptModal.setAttribute("aria-hidden", "true");
+          }
+        }
+      });
+
+      // render initial minimal view if want to skip welcome in dev
+      // (comment out welcome startBtn click to show app immediately)
+    </script>
+  </body>
+</html>
